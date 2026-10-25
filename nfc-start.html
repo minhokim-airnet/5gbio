@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5G BIO HEALTH 시작</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+  body { background: #070b14; color: #e2e8f0; min-height: 100vh; display: flex; flex-direction: column;
+         justify-content: center; align-items: center; text-align: center; padding: 24px; }
+  .box { width: 100%; max-width: 340px; border: 2px solid #00ffcc; border-radius: 14px; padding: 26px 20px;
+         background: rgba(5, 11, 20, 0.95); box-shadow: 0 0 30px rgba(0, 255, 204, 0.3); }
+  .sub { font-size: 10px; letter-spacing: 2px; color: #00ffcc; font-weight: bold; margin-bottom: 6px; }
+  h1 { font-size: 20px; color: #fff; margin-bottom: 18px; text-shadow: 0 0 10px #00ffcc; }
+  .btn { display: block; width: 100%; padding: 15px; font-size: 16px; font-weight: bold; color: #fff;
+         background: rgba(0, 255, 204, 0.2); border: 2px solid #00ffcc; border-radius: 10px; cursor: pointer;
+         text-decoration: none; box-shadow: 0 0 15px rgba(0, 255, 204, 0.4); }
+  .btn.sub-btn { margin-top: 12px; font-size: 14px; color: #ffe6f0; background: rgba(204, 0, 85, 0.25);
+                 border-color: #cc0055; box-shadow: none; }
+  .note { font-size: 12px; line-height: 1.6; color: #94a3b8; margin-top: 16px; }
+  #only-android { display: none; }
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="sub">AIRNET ENVIROSOLITION</div>
+    <h1>5G BIO HEALTH</h1>
+
+    <div id="android-area">
+      <a id="start-btn" class="btn" href="#">앱 시작하기</a>
+      <a id="install-btn" class="btn sub-btn" href="#">앱이 없으면 설치하기</a>
+      <p class="note">
+        앱이 설치되어 있으면 바로 실행됩니다.<br>
+        설치가 필요하면 위의 [설치하기]를 눌러 받은 뒤, 설치가 끝나면 NFC 밴드를 다시 터치해 주세요.
+      </p>
+    </div>
+
+    <p id="only-android" class="note">이 서비스는 안드로이드 폰에서만 사용할 수 있습니다.</p>
+  </div>
+
+<script>
+  // 설치 파일(APK) 직접 다운로드 주소 - 드라이브에서 "버전 관리"로 새 버전을 올리면 주소가 바뀌지 않음
+  const APK_URL = 'https://drive.google.com/uc?export=download&id=19G6RfebXYZ29dcxP9DVsnq7vG3QPDvec';
+  const PKG = 'com.airnet.biohealth';
+
+  // 앱이 있으면 biohealth://start 로 실행, 없으면 APK 다운로드 주소로 이동
+  const INTENT_URL = 'intent://start#Intent;scheme=biohealth;package=' + PKG +
+                     ';S.browser_fallback_url=' + encodeURIComponent(APK_URL) + ';end';
+
+  if (!/Android/i.test(navigator.userAgent)) {
+    document.getElementById('android-area').style.display = 'none';
+    document.getElementById('only-android').style.display = 'block';
+  } else {
+    document.getElementById('start-btn').href = INTENT_URL;
+    document.getElementById('install-btn').href = APK_URL;
+    // 자동 실행 시도 (브라우저가 막으면 위의 버튼을 누르면 됨)
+    setTimeout(() => { location.href = INTENT_URL; }, 400);
+  }
+</script>
+</body>
+</html>
