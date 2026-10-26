@@ -20,6 +20,9 @@
                  border-color: #cc0055; box-shadow: none; }
   .note { font-size: 12px; line-height: 1.6; color: #94a3b8; margin-top: 16px; }
   #only-android { display: none; }
+  #done-area { display: none; }
+  .btn.close-btn { font-size: 18px; padding: 18px; color: #fff; background: rgba(204, 0, 85, 0.3); border-color: #cc0055; box-shadow: 0 0 15px rgba(204, 0, 85, 0.5); }
+  .link-btn { display: inline-block; margin-top: 16px; font-size: 13px; color: #94a3b8; text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -36,6 +39,12 @@
       </p>
     </div>
 
+    <div id="done-area">
+      <button id="close-btn" class="btn close-btn">끄 기</button>
+      <p id="close-hint" class="note">앱이 종료되었습니다.<br>이 창을 닫아 주세요.</p>
+      <a id="again-btn" class="link-btn" href="#">다시 시작하기</a>
+    </div>
+
     <p id="only-android" class="note">이 서비스는 안드로이드 폰에서만 사용할 수 있습니다.</p>
   </div>
 
@@ -48,14 +57,56 @@
   const INTENT_URL = 'intent://start#Intent;scheme=biohealth;package=' + PKG +
                      ';S.browser_fallback_url=' + encodeURIComponent(APK_URL) + ';end';
 
+  const startBtn = document.getElementById('start-btn');
+  const againBtn = document.getElementById('again-btn');
+  let launchAttemptAt = 0;   // 앱 실행을 시도한 시각
+  let launched = false;      // 앱이 실제로 열렸다가(이 페이지가 가려짐) 돌아왔는지
+
+  function attemptLaunch() {
+    launchAttemptAt = Date.now();
+    location.href = INTENT_URL;
+  }
+
+  // 앱이 열리면 이 페이지는 가려짐 -> 앱이 끝나고 다시 보이면 [끄기] 화면으로 전환
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      if (Date.now() - launchAttemptAt < 6000) launched = true;
+    } else if (launched) {
+      showDone();
+    }
+  });
+
+  function showDone() {
+    document.getElementById('android-area').style.display = 'none';
+    document.getElementById('done-area').style.display = 'block';
+    try { window.close(); } catch (e) {}   // 브라우저가 허용하면 자동으로 닫힘
+  }
+
+  document.getElementById('close-btn').addEventListener('click', () => {
+    try { window.close(); } catch (e) {}
+    setTimeout(() => {
+      // 브라우저가 창 닫기를 막은 경우 안내
+      document.getElementById('close-hint').innerHTML = '브라우저가 자동으로 닫지 못했습니다.<br>화면 아래 홈 버튼을 누르거나 탭을 닫아 주세요.';
+      try { history.back(); } catch (e) {}
+    }, 400);
+  });
+
   if (!/Android/i.test(navigator.userAgent)) {
     document.getElementById('android-area').style.display = 'none';
     document.getElementById('only-android').style.display = 'block';
   } else {
-    document.getElementById('start-btn').href = INTENT_URL;
+    startBtn.href = INTENT_URL;
+    startBtn.addEventListener('click', () => { launchAttemptAt = Date.now(); });
+    againBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      launched = false;
+      document.getElementById('done-area').style.display = 'none';
+      document.getElementById('android-area').style.display = 'block';
+      attemptLaunch();
+    });
     document.getElementById('install-btn').href = APK_URL;
-    // 자동 실행 시도 (브라우저가 막으면 위의 버튼을 누르면 됨)
-    setTimeout(() => { location.href = INTENT_URL; }, 400);
+    // 앱이 설치되어 있으면 바로 실행 (브라우저가 막으면 [앱 시작하기] 버튼을 누르면 됨)
+    setTimeout(attemptLaunch, 400);
   }
 </script>
 </body>
